@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра "Жизнь"</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(20, 20px);
+      gap: 1px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .cell.alive {
+      background-color: #333;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid" id="grid"></div>
+  <button onclick="startGame()">Старт</button>
+  <button onclick="stopGame()">Стоп</button>
+  <button onclick="clearGrid()">Очистить</button>
+  <script>
+    const rows = 20;
+    const cols = 20;
+    let grid = createEmptyGrid();
+    let intervalId;
+    let isDrawing = false;
+
+    function createEmptyGrid() {
+      return Array.from({ length: rows }, () => Array(cols).fill(false));
+    }
+
+    function renderGrid() {
+      const gridContainer = document.getElementById('grid');
+      gridContainer.innerHTML = '';
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cellElement = document.createElement('div');
+          cellElement.classList.add('cell', grid[row][col] ? 'alive' : 'dead');
+
+          // Добавлены обработчики событий
+          cellElement.addEventListener('mousedown', (event) => handleMouseDown(event, row, col));
+          cellElement.addEventListener('mousemove', (event) => handleMouseMove(event, row, col));
+          cellElement.addEventListener('mouseup', handleMouseUp);
+
+          gridContainer.appendChild(cellElement);
+        }
+      }
+    }
+
+    function handleMouseDown(event, row, col) {
+      isDrawing = true;
+      toggleCell(row, col);
+    }
+
+    function handleMouseMove(event, row, col) {
+      if (isDrawing) {
+        toggleCell(row, col);
+      }
+    }
+
+    function toggleCell(row, col) {
+      if (row >= 0 && row < rows && col >= 0 && col < cols) {
+        grid[row][col] = !grid[row][col];
+        renderCell(row, col);
+      }
+    }
+
+    function renderCell(row, col) {
+      const cellIndex = row * cols + col;
+      const cellElement = document.querySelector(`.grid .cell:nth-child(${cellIndex + 1})`);
+      cellElement.classList.toggle('alive', grid[row][col]);
+    }
+
+    function handleMouseUp() {
+      isDrawing = false;
+    }
+
+    function startGame() {
+      intervalId = setInterval(updateGrid, 500);
+    }
+
+    function stopGame() {
+      clearInterval(intervalId);
+    }
+
+    function clearGrid() {
+      grid = createEmptyGrid();
+      renderGrid();
+    }
+
+    function updateGrid() {
+      const newGrid = createEmptyGrid();
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const neighbors = countNeighbors(row, col);
+          const isAlive = grid[row][col];
+
+          if (isAlive && (neighbors < 2 || neighbors > 3)) {
+            newGrid[row][col] = false;
+          } else if (!isAlive && neighbors === 3) {
+            newGrid[row][col] = true;
+          } else {
+            newGrid[row][col] = isAlive;
+          }
+        }
+      }
+
+      grid = newGrid;
+      renderGrid();
+    }
+
+    function countNeighbors(row, col) {
+      let count = 0;
+
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const neighborRow = row + i;
+          const neighborCol = col + j;
+
+          if (neighborRow >= 0 && neighborRow < rows && neighborCol >= 0 && neighborCol < cols) {
+            count += grid[neighborRow][neighborCol] ? 1 : 0;
+          }
+        }
+      }
+
+      count -= grid[row][col] ? 1 : 0;
+
+      return count;
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>
