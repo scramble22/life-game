@@ -46,6 +46,13 @@
         }
       }
     }
+    
+    function renderCell(row, col) {
+      const cellIndex = row * cols + col;
+      const cellElement = document.querySelector(`.grid .cell:nth-child(${cellIndex + 1})`);
+      cellElement.classList.toggle('alive', grid[row][col]);
+      cellElement.classList.toggle('dead', !grid[row][col]);
+    }
 
     function handleMouseDown(event, row, col) {
       isDrawing = true;
