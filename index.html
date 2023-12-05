@@ -5,27 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Игра "Жизнь"</title>
   <style>
-    /* Ваш стиль остается без изменений */
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(20, 20px);
+      gap: 1px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .cell.alive {
+      background-color: #333;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
   </style>
 </head>
 <body>
   <div class="grid" id="grid"></div>
-  <input type="color" id="colorPicker" value="#333" onchange="changeColor()">
   <button onclick="startGame()">Старт</button>
   <button onclick="stopGame()">Стоп</button>
   <button onclick="clearGrid()">Очистить</button>
-  <!-- Добавлены кнопки для режимов и их обработчики событий -->
-  <button onclick="enableCaptureMode()">Режим захвата</button>
-  <button onclick="enableReproductionMode()">Режим размножения</button>
   <script>
     const rows = 20;
     const cols = 20;
     let grid = createEmptyGrid();
     let intervalId;
     let isDrawing = false;
-    let isCaptureMode = false;
-    let isReproductionMode = false;
-    let currentColor = '#333';
 
     function createEmptyGrid() {
       return Array.from({ length: rows }, () => Array(cols).fill(false));
@@ -39,19 +66,15 @@
         for (let col = 0; col < cols; col++) {
           const cellElement = document.createElement('div');
           cellElement.classList.add('cell', grid[row][col] ? 'alive' : 'dead');
+
+          // Добавлены обработчики событий
           cellElement.addEventListener('mousedown', (event) => handleMouseDown(event, row, col));
           cellElement.addEventListener('mousemove', (event) => handleMouseMove(event, row, col));
           cellElement.addEventListener('mouseup', handleMouseUp);
+
           gridContainer.appendChild(cellElement);
         }
       }
-    }
-    
-    function renderCell(row, col) {
-      const cellIndex = row * cols + col;
-      const cellElement = document.querySelector(`.grid .cell:nth-child(${cellIndex + 1})`);
-      cellElement.classList.toggle('alive', grid[row][col]);
-      cellElement.classList.toggle('dead', !grid[row][col]);
     }
 
     function handleMouseDown(event, row, col) {
@@ -65,58 +88,21 @@
       }
     }
 
-    function handleMouseUp() {
-      isDrawing = false;
-    }
-
     function toggleCell(row, col) {
       if (row >= 0 && row < rows && col >= 0 && col < cols) {
-        if (isCaptureMode) {
-          captureColor(row, col);
-        } else if (isReproductionMode) {
-          reproduceColor(row, col);
-        } else {
-          grid[row][col] = !grid[row][col];
-        }
+        grid[row][col] = !grid[row][col];
         renderCell(row, col);
       }
     }
 
-    function captureColor(row, col) {
-      const targetColor = grid[row][col] ? '#fff' : currentColor;
-      fillConnectedCells(row, col, targetColor);
+    function renderCell(row, col) {
+      const cellIndex = row * cols + col;
+      const cellElement = document.querySelector(`.grid .cell:nth-child(${cellIndex + 1})`);
+      cellElement.classList.toggle('alive', grid[row][col]);
     }
 
-    function reproduceColor(row, col) {
-      const neighborColors = getNeighborColors(row, col);
-      const newColor = mixColors(neighborColors);
-      grid[row][col] = true;
-      fillConnectedCells(row, col, newColor);
-    }
-
-    function fillConnectedCells(row, col, color) {
-      // Реализуйте заполнение связанных клеток с определенным цветом
-      // Например, используя алгоритм заливки (flood fill)
-    }
-
-    function getNeighborColors(row, col) {
-      // Получите цвета соседей клетки
-      // Верните массив цветов
-    }
-
-    function mixColors(colors) {
-      // Реализуйте логику смешивания цветов, чтобы получить новый цвет
-      // Например, просто верните средний цвет из массива colors
-    }
-
-    function enableCaptureMode() {
-      isCaptureMode = true;
-      isReproductionMode = false;
-    }
-
-    function enableReproductionMode() {
-      isCaptureMode = false;
-      isReproductionMode = true;
+    function handleMouseUp() {
+      isDrawing = false;
     }
 
     function startGame() {
@@ -171,11 +157,6 @@
       count -= grid[row][col] ? 1 : 0;
 
       return count;
-    }
-
-    function changeColor() {
-      const colorPicker = document.getElementById('colorPicker');
-      currentColor = colorPicker.value;
     }
 
     renderGrid();
